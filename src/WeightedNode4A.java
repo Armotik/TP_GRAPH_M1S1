@@ -1,4 +1,4 @@
-
+// WeightedNode4A.java
 public class WeightedNode4A {
 
 	private int val;
@@ -28,6 +28,9 @@ public class WeightedNode4A {
 	public int getVal() {
 		return(this.val);
 	}
-	
-	
+
+    // Added
+    public Float getWeight() {
+        return(this.weight);
+    }
 }
