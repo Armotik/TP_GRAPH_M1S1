@@ -233,7 +233,7 @@ public class GraphL4A {
      * Computes the transposed graph.
      * Input: Adjacency List
      * Output: Adjacency Matrix
-     * Running time (worst case): O(n+m) where n is the number of vertices
+     * Running time : O(n+m) where n is the number of vertices
      * and m is the number of edges. We visit each vertex and each edge once.
      */
     public GraphM4A transposeToMatrix() {
@@ -267,7 +267,7 @@ public class GraphL4A {
     /**
      * Tests whether a sequence of vertices is a path in the graph.
      * Input representation: Adjacency List.
-     * Running time (worst case): O(k * deg_max) where k is the length of the sequence
+     * Running time : O(k * deg_max) where k is the length of the sequence
      * and deg_max is the maximum out-degree of a vertex.
      */
     public boolean isPath(int[] sequence) {
@@ -312,6 +312,14 @@ public class GraphL4A {
         }
         return true;
     }
+
+    ///
+    /// TP2
+    ///
+
+    /// EX 1
+
+
 }
 		
 	
