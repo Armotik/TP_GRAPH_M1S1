@@ -1,3 +1,5 @@
+// Main4A.java
+
 import java.io.File;
 import java.util.Scanner;
 import java.io.FileNotFoundException;
@@ -5,64 +7,97 @@ import java.io.FileNotFoundException;
 
 public class Main4A {
 
-  public static void main(String args[]){
+    public static void main(String args[]) {
 
-    try{
-      File file= new File(args[0]);
-      
-    //If we choose the representation by adjacency matrix
-      Scanner sc = new Scanner(file);      
-      GraphM4A graphM = new GraphM4A(sc); 
-      if (graphM.getType()==0) { //undirected
-    	  int[] degree = graphM.degree();
-      System.out.println("(Matrix) Degrees for vertices from 1 to " + degree.length + " for the given undirected graph");  
-      Tools4A.printArray(degree);
-      }
-      else { //directed
-    	  TwoArrays4A pair=graphM.degrees();
-    	  int[] indegree =pair.in(); //the result of graphM.degrees() is a pair of arrays, indegree and outdegree
-          int[] outdegree =pair.out();
-          System.out.println("(Matrix)Indegrees for vertices from 1 to " + indegree.length + " for the given digraph");  
-          Tools4A.printArray(indegree);
-          System.out.println("(Matrix)Outdegrees for vertices from 1 to " + indegree.length + " for the given digraph");  
-          Tools4A.printArray(outdegree);
-          
-    	  }	  
-      
-   // If we choose the representation by adjacency lists
-      sc = new Scanner(file);
-      GraphL4A graphL = new GraphL4A(sc); 
-      if (graphL.getType()==0&&graphL.getWeighted()==0) { //undirected and unweighted
-    	  int[] degree = graphL.degree();
-    	  System.out.println("(List) Degrees for vertices from 1 to " + degree.length + " for the given undirected graph");  
-          Tools4A.printArray(degree);
-      }
-      if (graphL.getType()==0&&graphL.getWeighted()==1) { //undirected and weighted
-    	  int[] degree = graphL.degreeW();
-    	  System.out.println("(List) Degrees for vertices from 1 to " + degree.length + " for the given undirected graph");  
-          Tools4A.printArray(degree);
-      }
-      if (graphL.getType()==1&&graphL.getWeighted()==0){ //directed and unweighted
-    	  TwoArrays4A pair=graphL.degrees();
-    	  int[] indegree = pair.in(); 
-          int[] outdegree = pair.out();
-          System.out.println("(List) Indegrees for vertices from 1 to " + indegree.length + " for the given digraph");  
-          Tools4A.printArray(indegree);
-          System.out.println("(List) Outdegrees for vertices from 1 to " + indegree.length + " for the given digraph");  
-          Tools4A.printArray(outdegree);
-    	  }	  
-      if (graphL.getType()==1&&graphL.getWeighted()==1){ //directed and unweighted
-    	  TwoArrays4A pair=graphL.degreesW();
-    	  int[] indegree = pair.in(); 
-          int[] outdegree = pair.out();
-          System.out.println("(List)Indegrees for vertices from 1 to " + indegree.length + " for the given digraph");  
-          Tools4A.printArray(indegree);
-          System.out.println("(List)Outdegrees for vertices from 1 to " + indegree.length + " for the given digraph");  
-          Tools4A.printArray(outdegree);
-    	  }	  
-      sc.close();
-    } catch(Exception e) {
-      e.printStackTrace();
+        if (args.length == 0) {
+            System.out.println("Usage: java Main4A <filename>");
+            return;
+        }
+
+        try {
+            File file = new File(args[0]);
+
+            // --- PART 1: Reading graph using Adjacency Matrix representation ---
+            System.out.println("==============================================");
+            System.out.println("TESTING WITH ADJACENCY MATRIX");
+            System.out.println("==============================================");
+            Scanner scM = new Scanner(file);
+            GraphM4A graphM = new GraphM4A(scM);
+            scM.close();
+
+            System.out.println("\n--- Original Graph (Matrix) ---");
+            graphM.print();
+
+
+            // --- PART 2: Reading graph using Adjacency List representation ---
+            System.out.println("\n==============================================");
+            System.out.println("TESTING WITH ADJACENCY LIST");
+            System.out.println("==============================================");
+            Scanner scL = new Scanner(file);
+            GraphL4A graphL = new GraphL4A(scL);
+            scL.close();
+
+            System.out.println("\n--- Original Graph (List) ---");
+            graphL.print();
+
+
+            /// EX 1
+            System.out.println("\n==============================================");
+            System.out.println("RESPONSE TO EXERCISE 1");
+            System.out.println("==============================================");
+
+            if (graphM.getType() == 1) {
+                System.out.println("\n--- 1. Transpose Matrix -> Matrix ---");
+                GraphM4A g_t_MM = graphM.transposeToMatrix();
+                g_t_MM.print();
+
+                System.out.println("\n--- 2. Transpose List -> List ---");
+                GraphL4A g_t_LL = graphL.transposeToList();
+                g_t_LL.print();
+
+                System.out.println("\n--- 3. Transpose Matrix -> List ---");
+                GraphL4A g_t_ML = graphM.transposeToList();
+                g_t_ML.print();
+
+                System.out.println("\n--- 4. Transpose List -> Matrix ---");
+                GraphM4A g_t_LM = graphL.transposeToMatrix();
+                g_t_LM.print();
+            } else {
+                System.out.println("\nSkipping Exercise 1: Graph is undirected.");
+            }
+
+
+            /// EX 2
+            System.out.println("\n==============================================");
+            System.out.println("RESPONSE TO EXERCISE 2");
+            System.out.println("==============================================");
+
+            int[] path1 = {1, 10, 12}; // Should be true
+            int[] path2 = {1, 27};     // Should be true
+            int[] path3 = {1, 10, 2};  // Should be true
+            int[] path4 = {1, 12};     // Should be false
+            int[] path5 = {16, 1};     // Should be false
+            int[] path6 = {1};         // Should be true
+
+            System.out.println("\n--- Testing paths with Matrix representation ---");
+            System.out.println("Is path {1, 10, 12}? -> " + graphM.isPath(path1));
+            System.out.println("Is path {1, 27}? -> " + graphM.isPath(path2));
+            System.out.println("Is path {1, 10, 2}? -> " + graphM.isPath(path3));
+            System.out.println("Is path {1, 12}? -> " + graphM.isPath(path4));
+            System.out.println("Is path {16, 1}? -> " + graphM.isPath(path5));
+            System.out.println("Is path {1}? -> " + graphM.isPath(path6));
+
+            System.out.println("\n--- Testing paths with List representation ---");
+            System.out.println("Is path {1, 10, 12}? -> " + graphL.isPath(path1));
+            System.out.println("Is path {1, 27}? -> " + graphL.isPath(path2));
+            System.out.println("Is path {1, 10, 2}? -> " + graphL.isPath(path3));
+            System.out.println("Is path {1, 12}? -> " + graphL.isPath(path4));
+            System.out.println("Is path {16, 1}? -> " + graphL.isPath(path5));
+            System.out.println("Is path {1}? -> " + graphL.isPath(path6));
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-  }
 }

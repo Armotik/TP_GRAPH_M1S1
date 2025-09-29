@@ -1,3 +1,4 @@
+// GraphL4A.java
 
 import java.util.Scanner;
 
@@ -8,6 +9,24 @@ public class GraphL4A {
     private int weighted; // 0 if unweighted, 1 otherwise
     private WeightedNode4A[] adjlistW; //one of adjlistW and adjlist is null, depending on the type of the graph
     private Node4A[] adjlist;
+
+    // Constructor for the creation of a graph manually
+    public GraphL4A(int n, int type, int weighted) {
+        this.n = n;
+        this.type = type;
+        this.weighted = weighted;
+        if (this.weighted == 0) {
+            this.adjlist = new Node4A[this.n];
+            for (int i = 0; i < this.n; i++)
+                adjlist[i] = null;
+            adjlistW = null;
+        } else {
+            this.adjlistW = new WeightedNode4A[this.n];
+            for (int i = 0; i < this.n; i++)
+                adjlistW[i] = null;
+            adjlist = null;
+        }
+    }
 
     public GraphL4A(Scanner sc) {
         String[] firstline = sc.nextLine().split(" ");
@@ -140,34 +159,159 @@ public class GraphL4A {
         return this.type;
     }
 
-    public int getWeighted() {
-        return this.weighted;
+    public Node4A[] getAdjlist() {
+        return adjlist;
     }
 
-    public void transposeL4A() {
+    public WeightedNode4A[] getAdjlistW() {
+        return adjlistW;
+    }
 
-        Node4A adj_T[] = new Node4A[n]; // On créé une nouvelle liste d'adjacence pour le graphe transposé
-
-        // Initialisation de la liste d'adjacence transposée
-        for (int i = 0; i < n; i++) {
-            adj_T[i] = null;
-        }
-
-        // Parcours de chaque sommet du graphe original
-        for (int i = 0; i < n; i++) {
-
-            while (adjlist[i].getNext() != null) {
-
-                Node4A tmp = adjlist[i].getNext();
-                int j = tmp.getVal(); // j est un successeur de i dans le graphe original
-
-                Node4A newNode = new Node4A(i, tmp); // On crée un nouveau noeud pour le graphe transposé
-
+    public void print() {
+        System.out.println("Adjacency List:");
+        if (weighted == 0) {
+            for (int i = 0; i < n; i++) {
+                System.out.print((i + 1) + " -> ");
+                Node4A p = adjlist[i];
+                while (p != null) {
+                    System.out.print((p.getVal() + 1) + " ");
+                    p = p.getNext();
+                }
+                System.out.println();
+            }
+        } else {
+            for (int i = 0; i < n; i++) {
+                System.out.print((i + 1) + " -> ");
+                WeightedNode4A p = adjlistW[i];
+                while (p != null) {
+                    System.out.print((p.getVal() + 1) + " [" + p.getWeight() + "] ");
+                    p = p.getNext();
+                }
+                System.out.println();
             }
         }
-
     }
 
+    ///  EX 1
+
+    /**
+     * Computes the transposed graph.
+     * Input: Adjacency List
+     * Output: Adjacency List
+     * Running time : O(n+m) where n is the number of vertices
+     * and m is the number of edges. We visit each vertex and each edge once.
+     */
+    public GraphL4A transposeToList() {
+        GraphL4A transposedGraph = new GraphL4A(this.n, this.type, this.weighted);
+        if (this.weighted == 0) {
+            for (int i = 0; i < this.n; i++) {
+                Node4A p = this.adjlist[i];
+                while (p != null) {
+                    int j = p.getVal(); // Edge i -> j exists
+                    // Add edge j -> i to the transposed graph
+                    Node4A newNode = new Node4A(i, transposedGraph.adjlist[j]);
+                    transposedGraph.adjlist[j] = newNode;
+                    p = p.getNext();
+                }
+            }
+        } else {
+            for (int i = 0; i < this.n; i++) {
+                WeightedNode4A p = this.adjlistW[i];
+                while (p != null) {
+                    int j = p.getVal(); // Edge i -> j exists
+                    // Add edge j -> i to the transposed graph
+                    WeightedNode4A newNode = new WeightedNode4A(i, transposedGraph.adjlistW[j], p.getWeight());
+                    transposedGraph.adjlistW[j] = newNode;
+                    p = p.getNext();
+                }
+            }
+        }
+        return transposedGraph;
+    }
+
+    /**
+     * Computes the transposed graph.
+     * Input: Adjacency List
+     * Output: Adjacency Matrix
+     * Running time (worst case): O(n+m) where n is the number of vertices
+     * and m is the number of edges. We visit each vertex and each edge once.
+     */
+    public GraphM4A transposeToMatrix() {
+        GraphM4A transposedGraph = new GraphM4A(this.n, this.type, this.weighted);
+        if (this.weighted == 0) {
+            for (int i = 0; i < this.n; i++) {
+                Node4A p = this.adjlist[i];
+                while (p != null) {
+                    int j = p.getVal(); // Edge i -> j exists
+                    // Add edge j -> i to the transposed graph's matrix
+                    transposedGraph.adjmat[j][i] = 1;
+                    p = p.getNext();
+                }
+            }
+        } else {
+            for (int i = 0; i < this.n; i++) {
+                WeightedNode4A p = this.adjlistW[i];
+                while (p != null) {
+                    int j = p.getVal(); // Edge i -> j exists
+                    // Add edge j -> i to the transposed graph's matrix
+                    transposedGraph.adjmat[j][i] = p.getWeight();
+                    p = p.getNext();
+                }
+            }
+        }
+        return transposedGraph;
+    }
+
+    /// EX 2
+
+    /**
+     * Tests whether a sequence of vertices is a path in the graph.
+     * Input representation: Adjacency List.
+     * Running time (worst case): O(k * deg_max) where k is the length of the sequence
+     * and deg_max is the maximum out-degree of a vertex.
+     */
+    public boolean isPath(int[] sequence) {
+        if (sequence == null || sequence.length < 2) {
+            return true;
+        }
+
+        for (int i = 0; i < sequence.length - 1; i++) {
+            int u = sequence[i];
+            int v = sequence[i + 1];
+
+            if (u < 1 || u > n || v < 1 || v > n) {
+                System.out.println("Error: Vertex out of bounds.");
+                return false;
+            }
+
+            boolean edgeFound = false;
+            if (weighted == 0) {
+                Node4A p = adjlist[u - 1];
+                while (p != null) {
+                    if (p.getVal() == v - 1) {
+                        edgeFound = true;
+                        break;
+                    }
+                    p = p.getNext();
+                }
+            } else {
+                WeightedNode4A p = adjlistW[u - 1];
+                while (p != null) {
+                    if (p.getVal() == v - 1) {
+                        edgeFound = true;
+                        break;
+                    }
+                    p = p.getNext();
+                }
+            }
+
+            if (!edgeFound) {
+                System.out.println("No edge from " + u + " to " + v);
+                return false;
+            }
+        }
+        return true;
+    }
 }
 		
 	
