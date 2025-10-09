@@ -1,6 +1,7 @@
 // GraphL4A.java
 
 import java.util.Scanner;
+import java.util.Stack;
 
 public class GraphL4A {
 
@@ -319,7 +320,64 @@ public class GraphL4A {
 
     /// EX 1
 
+    private int[] visited;
+    private int[] disc;
+    private int[] fin;
+    private int[] pred;
+    private int time;
 
+    public void DFSNum() {
+        this.visited = new int[n];
+        this.disc = new int[n];
+        this.fin = new int[n];
+        this.pred = new int[n];
+        this.time = 0;
+
+        for (int i = 0; i < n; i++) {
+            this.visited[i] = 0;
+            this.pred[i] = -1;
+        }
+
+        System.out.println("--- Arc Classification ---");
+        for (int i = 0; i < n; i++) {
+            if (this.visited[i] == 0) {
+                DFS_visit(i);
+            }
+        }
+
+        System.out.println("\n--- Final Timestamps ---");
+        System.out.println("Vertex\tDisc\tFin");
+        for (int i = 0; i < n; i++) {
+            System.out.println((i + 1) + "\t" + this.disc[i] + "\t" + this.fin[i]);
+        }
+    }
+
+    private void DFS_visit(int u) {
+        this.visited[u] = 1;
+        this.time++;
+        this.disc[u] = this.time;
+
+        Node4A p = this.adjlist[u];
+        while (p != null) {
+            int v = p.getVal();
+
+            if (this.visited[v] == 0) {
+                System.out.println("Tree arc: (" + (u + 1) + "," + (v + 1) + ")");
+                this.pred[v] = u;
+                DFS_visit(v);
+            } else if (this.visited[v] == 1) {
+                if (this.pred[u] != v) {
+                    System.out.println("Back arc: (" + (u + 1) + "," + (v + 1) + ") -> CYCLE DETECTED!");
+                }
+            }
+
+            p = p.getNext();
+        }
+
+        this.visited[u] = 2; // 2 = NOIR
+        this.time++;
+        this.fin[u] = this.time;
+    }
 }
 		
 	
