@@ -183,4 +183,164 @@ public class GraphM4A {
         return true;
     }
 
+    ///
+    /// TP2
+    ///
+
+    /// EX 1
+
+    private int[] visited;
+    private int[] disc;
+    private int[] fin;
+    private int[] pred;
+    private int time;
+
+    /**
+     * Performs DFS traversal and timestamps each vertex. Classifies arcs as Tree or Back arcs.
+     * Input representation: Adjacency Matrix.
+     * Running time : O(n^2) where n is the number of vertices.
+     * We need to iterate through the entire n x n matrix to find all edges.
+     */
+    public void DFSNum() {
+        visited = new int[n];
+        disc = new int[n];
+        fin = new int[n];
+        pred = new int[n];
+        time = 0;
+
+        for (int i = 0; i < n; i++) {
+            visited[i] = 0; // 0 means unvisited
+            pred[i] = -1;   // -1 means no predecessor
+        }
+
+        for (int i = 0; i < n; i++) {
+            if (visited[i] == 0) {
+                DFSVisit(i);
+            }
+        }
+
+        System.out.println("Vertex\tDiscovery\tFinish\tPredecessor");
+        for (int i = 0; i < n; i++) {
+            System.out.println((i + 1) + "\t" + disc[i] + "\t\t" + fin[i] + "\t" + (pred[i] == -1 ? "NULL" : (pred[i] + 1)));
+        }
+    }
+
+    /**
+     * Helper method for DFS traversal.
+     * Classifies arcs as Tree or Back arcs.
+     * @param u the current vertex being visited
+     */
+    private void DFSVisit(int u) {
+        visited[u] = 1; // Mark as visiting
+        time++;
+        disc[u] = time;
+
+        for (int v = 0; v < n; v++) {
+            if (adjmat[u][v] != 0) { // There is an edge u -> v
+                if (visited[v] == 0) {
+                    System.out.println("Tree arc: (" + (u + 1) + ", " + (v + 1) + ")");
+                    pred[v] = u;
+                    DFSVisit(v);
+                } else if (visited[v] == 1) {
+                    System.out.println("Back arc: (" + (u + 1) + ", " + (v + 1) + ")");
+                }
+                // Forward and Cross arcs are not classified here
+            }
+        }
+
+        visited[u] = 2; // Mark as fully visited
+        time++;
+        fin[u] = time;
+    }
+
+    /**
+     * Detects and prints the vertices of a cycle in the graph (adjacency matrix).
+     * If a cycle is found, prints the sequence of vertices forming the cycle.
+     * Works for both directed and undirected graphs.
+     * Returns true if a cycle is found, false otherwise.
+     */
+    public boolean containsCycle() {
+        boolean[] visited = new boolean[n]; // Tracks visited vertices
+        boolean[] recStack = new boolean[n]; // Tracks recursion stack for directed graphs
+        java.util.List<Integer> path = new java.util.ArrayList<>(); // Stores the current DFS path
+        for (int i = 0; i < n; i++) {
+            if (!visited[i]) {
+                // Choose the correct DFS depending on graph type
+                if (type == 1) { // Directed
+                    if (dfsCycleDirected(i, visited, recStack, path)) return true;
+                } else { // Undirected
+                    if (dfsCycleUndirected(i, visited, -1, path)) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * DFS for directed graphs. Prints the cycle when found.
+     * @param v Current vertex
+     * @param visited Visited array
+     * @param recStack Recursion stack array
+     * @param path Current DFS path
+     * @return true if a cycle is found
+     */
+    private boolean dfsCycleDirected(int v, boolean[] visited, boolean[] recStack, java.util.List<Integer> path) {
+        visited[v] = true;
+        recStack[v] = true;
+        path.add(v);
+        for (int u = 0; u < n; u++) {
+            if (adjmat[v][u] != 0) {
+                if (!visited[u]) {
+                    if (dfsCycleDirected(u, visited, recStack, path)) return true;
+                } else if (recStack[u]) {
+                    // Cycle detected: print the cycle vertices
+                    int idx = path.indexOf(u);
+                    if (idx != -1) {
+                        System.out.print("Cycle found: ");
+                        for (int i = idx; i < path.size(); i++) {
+                            System.out.print((path.get(i)+1) + " ");
+                        }
+                        System.out.println((u+1)); // Close the cycle
+                    }
+                    return true;
+                }
+            }
+        }
+        recStack[v] = false;
+        path.remove(path.size()-1);
+        return false;
+    }
+
+    /**
+     * DFS for undirected graphs. Prints the cycle when found.
+     * @param v Current vertex
+     * @param visited Visited array
+     * @param parent Parent vertex in DFS
+     * @param path Current DFS path
+     * @return true if a cycle is found
+     */
+    private boolean dfsCycleUndirected(int v, boolean[] visited, int parent, java.util.List<Integer> path) {
+        visited[v] = true;
+        path.add(v);
+        for (int u = 0; u < n; u++) {
+            if (adjmat[v][u] != 0) {
+                if (!visited[u]) {
+                    if (dfsCycleUndirected(u, visited, v, path)) return true;
+                } else if (u != parent) {
+                    // Cycle detected: print the cycle vertices
+                    int idx = path.indexOf(u);
+                    if (idx != -1) {
+                        System.out.print("Cycle found: ");
+                        for (int i = idx; i < path.size(); i++) {
+                            System.out.print((path.get(i)+1) + " ");
+                        }
+                        System.out.println((u+1)); // Close the cycle
+                    }
+                    return true;
+                }
+            }
+        }
+        path.remove(path.size()-1);
+        return false;
+    }
 }

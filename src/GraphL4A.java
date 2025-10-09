@@ -1,5 +1,7 @@
 // GraphL4A.java
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
 
@@ -326,6 +328,13 @@ public class GraphL4A {
     private int[] pred;
     private int time;
 
+    /**
+     * Performs DFS traversal and timestamps each vertex. Classifies arcs as Tree or Back arcs.
+     * Input representation: Adjacency List.
+     * Running time : O(n + m) where n is the number of vertices and m is the number of edges.
+     * Each vertex and edge is visited once.
+     * Output: Prints arc classifications and timestamps.
+     */
     public void DFSNum() {
         this.visited = new int[n];
         this.disc = new int[n];
@@ -341,7 +350,11 @@ public class GraphL4A {
         System.out.println("--- Arc Classification ---");
         for (int i = 0; i < n; i++) {
             if (this.visited[i] == 0) {
-                DFS_visit(i);
+                if (weighted == 0) {
+                    DFS_visit(i);
+                } else {
+                    DFS_visitW(i);
+                }
             }
         }
 
@@ -352,6 +365,10 @@ public class GraphL4A {
         }
     }
 
+    /**
+     * Helper method for DFS traversal and arc classification (non-weighted).
+     * @param u The current vertex being visited.
+     */
     private void DFS_visit(int u) {
         this.visited[u] = 1;
         this.time++;
@@ -360,7 +377,6 @@ public class GraphL4A {
         Node4A p = this.adjlist[u];
         while (p != null) {
             int v = p.getVal();
-
             if (this.visited[v] == 0) {
                 System.out.println("Tree arc: (" + (u + 1) + "," + (v + 1) + ")");
                 this.pred[v] = u;
@@ -370,16 +386,206 @@ public class GraphL4A {
                     System.out.println("Back arc: (" + (u + 1) + "," + (v + 1) + ") -> CYCLE DETECTED!");
                 }
             }
-
             p = p.getNext();
         }
-
-        this.visited[u] = 2; // 2 = NOIR
+        this.visited[u] = 2;
         this.time++;
         this.fin[u] = this.time;
     }
-}
-		
-	
 
-	 
+    /**
+     * Helper method for DFS traversal and arc classification (weighted).
+     * @param u The current vertex being visited.
+     */
+    private void DFS_visitW(int u) {
+        this.visited[u] = 1;
+        this.time++;
+        this.disc[u] = this.time;
+
+        WeightedNode4A p = this.adjlistW[u];
+        while (p != null) {
+            int v = p.getVal();
+            if (this.visited[v] == 0) {
+                System.out.println("Tree arc: (" + (u + 1) + "," + (v + 1) + ")");
+                this.pred[v] = u;
+                DFS_visitW(v);
+            } else if (this.visited[v] == 1) {
+                if (this.pred[u] != v) {
+                    System.out.println("Back arc: (" + (u + 1) + "," + (v + 1) + ") -> CYCLE DETECTED!");
+                }
+            }
+            p = p.getNext();
+        }
+        this.visited[u] = 2;
+        this.time++;
+        this.fin[u] = this.time;
+    }
+
+    /**
+     * Detects and prints the vertices of a cycle in the graph (adjacency list).
+     * If a cycle is found, prints the sequence of vertices forming the cycle.
+     * Works for both directed and undirected, weighted and unweighted graphs.
+     * Returns true if a cycle is found, false otherwise.
+     */
+    public boolean containsCycle() {
+        boolean[] visited = new boolean[n]; // Tracks visited vertices
+        boolean[] recStack = new boolean[n]; // Tracks recursion stack for directed graphs
+        List<Integer> path = new ArrayList<>(); // To store the current path
+        for (int i = 0; i < n; i++) {
+            if (!visited[i]) {
+                // Choose the correct DFS depending on graph type and weighting
+                if (type == 1) { // Directed
+                    if (weighted == 0) {
+                        if (dfsCycleDirected(i, visited, recStack, path)) return true;
+                    } else {
+                        if (dfsCycleDirectedW(i, visited, recStack, path)) return true;
+                    }
+                } else { // Undirected
+                    if (weighted == 0) {
+                        if (dfsCycleUndirected(i, visited, -1, path)) return true;
+                    } else {
+                        if (dfsCycleUndirectedW(i, visited, -1, path)) return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * DFS for directed, unweighted graphs. Prints the cycle when found.
+     * @param v Current vertex
+     * @param visited Visited array
+     * @param recStack Recursion stack array
+     * @param path Current DFS path
+     * @return true if a cycle is found
+     */
+    private boolean dfsCycleDirected(int v, boolean[] visited, boolean[] recStack, List<Integer> path) {
+        visited[v] = true;
+        recStack[v] = true;
+        path.add(v);
+        Node4A node = adjlist[v];
+        while (node != null) {
+            int u = node.getVal();
+            if (!visited[u]) {
+                if (dfsCycleDirected(u, visited, recStack, path)) return true;
+            } else if (recStack[u]) {
+                // Cycle detected: print the cycle vertices
+                int idx = path.indexOf(u);
+                if (idx != -1) {
+                    System.out.print("Cycle found: ");
+                    for (int i = idx; i < path.size(); i++) {
+                        System.out.print((path.get(i)+1) + " ");
+                    }
+                    System.out.println((u+1)); // Close the cycle
+                }
+                return true;
+            }
+            node = node.getNext();
+        }
+        recStack[v] = false;
+        path.remove(path.size()-1);
+        return false;
+    }
+
+    /**
+     * DFS for directed, weighted graphs. Prints the cycle when found.
+     * @param v Current vertex
+     * @param visited Visited array
+     * @param recStack Recursion stack array
+     * @param path Current DFS path
+     * @return true if a cycle is found
+     */
+    private boolean dfsCycleDirectedW(int v, boolean[] visited, boolean[] recStack, List<Integer> path) {
+        visited[v] = true;
+        recStack[v] = true;
+        path.add(v);
+        WeightedNode4A node = adjlistW[v];
+        while (node != null) {
+            int u = node.getVal();
+            if (!visited[u]) {
+                if (dfsCycleDirectedW(u, visited, recStack, path)) return true;
+            } else if (recStack[u]) {
+                int idx = path.indexOf(u);
+                if (idx != -1) {
+                    System.out.print("Cycle found: ");
+                    for (int i = idx; i < path.size(); i++) {
+                        System.out.print((path.get(i)+1) + " ");
+                    }
+                    System.out.println((u+1));
+                }
+                return true;
+            }
+            node = node.getNext();
+        }
+        recStack[v] = false;
+        path.remove(path.size()-1);
+        return false;
+    }
+
+    /**
+     * DFS for undirected, unweighted graphs. Prints the cycle when found.
+     * @param v Current vertex
+     * @param visited Visited array
+     * @param parent Parent vertex in DFS
+     * @param path Current DFS path
+     * @return true if a cycle is found
+     */
+    private boolean dfsCycleUndirected(int v, boolean[] visited, int parent, List<Integer> path) {
+        visited[v] = true;
+        path.add(v);
+        Node4A node = adjlist[v];
+        while (node != null) {
+            int u = node.getVal();
+            if (!visited[u]) {
+                if (dfsCycleUndirected(u, visited, v, path)) return true;
+            } else if (u != parent) {
+                int idx = path.indexOf(u);
+                if (idx != -1) {
+                    System.out.print("Cycle found: ");
+                    for (int i = idx; i < path.size(); i++) {
+                        System.out.print((path.get(i)+1) + " ");
+                    }
+                    System.out.println((u+1));
+                }
+                return true;
+            }
+            node = node.getNext();
+        }
+        path.remove(path.size()-1);
+        return false;
+    }
+
+    /**
+     * DFS for undirected, weighted graphs. Prints the cycle when found.
+     * @param v Current vertex
+     * @param visited Visited array
+     * @param parent Parent vertex in DFS
+     * @param path Current DFS path
+     * @return true if a cycle is found
+     */
+    private boolean dfsCycleUndirectedW(int v, boolean[] visited, int parent, List<Integer> path) {
+        visited[v] = true;
+        path.add(v);
+        WeightedNode4A node = adjlistW[v];
+        while (node != null) {
+            int u = node.getVal();
+            if (!visited[u]) {
+                if (dfsCycleUndirectedW(u, visited, v, path)) return true;
+            } else if (u != parent) {
+                int idx = path.indexOf(u);
+                if (idx != -1) {
+                    System.out.print("Cycle found: ");
+                    for (int i = idx; i < path.size(); i++) {
+                        System.out.print((path.get(i)+1) + " ");
+                    }
+                    System.out.println((u+1));
+                }
+                return true;
+            }
+            node = node.getNext();
+        }
+        path.remove(path.size()-1);
+        return false;
+    }
+}
